@@ -22,8 +22,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - run: ls
       - uses: actions/upload-artifact@v3
         with:
-          name: TheStoneProxy
-          path: ./TheStoneProxy
+          name: The StoneProxy
+          path: TheStoneProxy
