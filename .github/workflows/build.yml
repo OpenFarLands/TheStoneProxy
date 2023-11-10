@@ -17,11 +17,12 @@ jobs:
         run: go get .
       - name: Build
         run: go build .
-        
+
   put-artifact:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - run: ls
       - uses: actions/upload-artifact@v3
         with:
           name: TheStoneProxy
