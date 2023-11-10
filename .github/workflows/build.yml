@@ -17,12 +17,6 @@ jobs:
         run: go get .
       - name: Build
         run: go build .
-
-  put-artifact:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/upload-artifact@v3
         with:
           name: The StoneProxy
