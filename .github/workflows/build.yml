@@ -19,8 +19,18 @@ jobs:
             - name: Install dependencies
               run: go get .
             - name: Build
-              run: go build -o ./build/TheStoneProxy-${{ matrix.os }} .
-            - uses: actions/upload-artifact@v3
+              run: go build -o ./build/ .
+            - name: Upload assets for ubuntu-latest
+              if: ${{ matrix.os }} == 'ubuntu-latest'
+              uses: actions/upload-artifact@v3
               with:
-                  name: TheStoneProxy
+                  name: TheStoneProxy Linux
                   path: build/
+            - name: Upload assets for windows-latest
+              if: ${{ matrix.os }} == 'windows-latest'
+              uses: actions/upload-artifact@v3
+              with:
+                  name: TheStoneProxy Windows
+                  path: build/
+
+
