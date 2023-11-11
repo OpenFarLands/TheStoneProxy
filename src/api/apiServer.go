@@ -31,6 +31,10 @@ func Setup(paramConfig *conf.Config, users *sync.Map) error {
 	}
 
 	log.Printf("Starting api server on %v.", config.ApiServerAddress)
+	
+	if len(config.ApiWhitelist) == 0 {
+		log.Print("Api whitelist is empty, so anyone could use it. Disable api server by setting Use_api_server to false in config.toml if you don't need it.")
+	}
 
 	serv := &ApiServer{
 		Users: users,
@@ -49,7 +53,7 @@ func Setup(paramConfig *conf.Config, users *sync.Map) error {
 }
 
 func (s *ApiServer) online(w http.ResponseWriter, r *http.Request) {
-	if !isAllowed(addrStringToArray(r.RemoteAddr)[0]) {
+	if !isAllowed(addrStringToArray(r.RemoteAddr)[0]){
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -129,7 +133,7 @@ func (s *ApiServer) port2ip(w http.ResponseWriter, r *http.Request) {
 }
 
 func isAllowed(address string) bool {
-	return slices.Contains(config.ApiWhitelist, address)
+	return slices.Contains(config.ApiWhitelist, address) || len(config.ApiWhitelist) == 0
 }
 
 func addrStringToArray(str string) []string {
