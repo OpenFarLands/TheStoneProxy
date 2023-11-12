@@ -46,7 +46,7 @@ func New(proxyAddr, upstreamAddr string, paramConfig *conf.Config) (*Server, err
 	}, nil
 }
 
-func (s *Server) HandleConnection(conn net.Conn) {
+func (s *Server) handleConnection(conn net.Conn) {
 	log.Printf("Сlient connected: %v", conn.RemoteAddr().String())
 
 	server, err := raknet.Dial(s.UpstreamAddr)
@@ -165,6 +165,6 @@ func (s *Server) StartHandle() {
 			continue
 		}
 
-		go s.HandleConnection(conn)
+		go s.handleConnection(conn)
 	}
 }
