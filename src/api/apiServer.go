@@ -44,11 +44,13 @@ func Setup(paramConfig *conf.Config, users *sync.Map) error {
 	http.HandleFunc("/port2ip", serv.port2ip)
 	http.HandleFunc("/online", serv.online)
 
-	err := http.ListenAndServe(config.ApiServerAddress, nil)
-	if err != nil {
-		return err
-	}
-
+	go func ()  {
+		err := http.ListenAndServe(config.ApiServerAddress, nil)
+		if err != nil {
+			log.Panic(err)
+		}
+	}()
+	
 	return nil
 }
 

@@ -24,6 +24,7 @@ type Server struct {
 	ProxyAddr    *net.UDPAddr
 	UpstreamAddr string
 	Timeout      int
+	Listener     *raknet.Listener
 }
 
 func New(proxyAddr, upstreamAddr string, paramConfig *conf.Config) (*Server, error) {
@@ -46,7 +47,7 @@ func New(proxyAddr, upstreamAddr string, paramConfig *conf.Config) (*Server, err
 	}, nil
 }
 
-func (s *Server) HandleConnection(conn net.Conn) {
+func (s *Server) handleConnection(conn net.Conn) {
 	log.Printf("Сlient connected: %v", conn.RemoteAddr().String())
 
 	server, err := raknet.Dial(s.UpstreamAddr)
@@ -127,6 +128,15 @@ func (s *Server) HandleConnection(conn net.Conn) {
 	wg.Wait()
 }
 
+func (s *Server) StopHandle() {
+	s.Users.Range(func(key, value any) bool {
+		key.(*raknet.Conn).Close()
+		value.(*raknet.Conn).Close()
+		s.Users.Delete(key)
+		return true
+	})
+}
+
 func (s *Server) StartHandle() {
 	log.Printf("Starting listening on %v, proxying to %v.", s.ProxyAddr.String(), s.UpstreamAddr)
 
@@ -135,7 +145,7 @@ func (s *Server) StartHandle() {
 		log.Panic(err)
 	}
 	defer listener.Close()
-
+	
 	// Get motd from upstream
 	ticker := time.NewTicker(time.Duration(config.MotdGetInterval) * time.Second)
 	go func() {
@@ -165,6 +175,6 @@ func (s *Server) StartHandle() {
 			continue
 		}
 
-		go s.HandleConnection(conn)
+		go s.handleConnection(conn)
 	}
 }
