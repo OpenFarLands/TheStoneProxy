@@ -74,23 +74,19 @@ func (s *ApiServer) port2latency(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.Clients.Range(func(key net.Conn, value *server.Client) bool {
-		proxyPort := addrStringToArray(value.Addr.LocalAddr().String())[1]
-		serverLatency := key.(*raknet.Conn).Latency()
-		clientLatency := value.GetLatency()
-
-		log.Print(2 * (serverLatency + clientLatency))
+		proxyPort := addrStringToArray(key.LocalAddr().String())[1]
+		clientLatency := value.GetLatency().Milliseconds() * 2
+		serverLatency := key.(*raknet.Conn).Latency().Milliseconds() * 2
 
 		if proxyPort == port {
 			resp = apiResponse{
 				Body: struct {
 					ClientLatency int    `json:"clientLatency"`
 					ServerLatency int    `json:"serverLatency"`
-					TotalLatency  int    `json:"totalLatency"`
 					Port          string `json:"port"`
 				}{
-					ClientLatency: int(value.GetLatency()),
-					ServerLatency: int(key.(*raknet.Conn).Latency()),
-					TotalLatency: int((serverLatency + clientLatency) * 2),
+					ClientLatency: int(clientLatency),
+					ServerLatency: int(serverLatency),
 					Port:          port,
 				},
 				Error: "",
@@ -161,8 +157,8 @@ func (s *ApiServer) port2ip(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.Clients.Range(func(key net.Conn, value *server.Client) bool {
-		proxyPort := addrStringToArray(value.Addr.LocalAddr().String())[1]
-		originIp := addrStringToArray(value.Addr.RemoteAddr().String())[0]
+		proxyPort := addrStringToArray(key.LocalAddr().String())[1]
+		originIp := addrStringToArray(key.RemoteAddr().String())[0]
 
 		if proxyPort == port {
 			resp = apiResponse{
