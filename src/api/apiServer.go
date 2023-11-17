@@ -11,11 +11,12 @@ import (
 	conf "github.com/OpenFarLands/TheStoneProxy/src/config"
 	"github.com/OpenFarLands/TheStoneProxy/src/server"
 	"github.com/OpenFarLands/TheStoneProxy/src/utils/syncmap"
+	"github.com/OpenFarLands/go-raknet"
 )
 
 type ApiServer struct {
-	Users *syncmap.Map[net.Conn, *server.Client]
-	Addr  string
+	Clients *syncmap.Map[net.Conn, *server.Client]
+	Addr    string
 }
 
 type apiResponse struct {
@@ -29,31 +30,91 @@ func Setup(paramConfig *conf.Config, users *syncmap.Map[net.Conn, *server.Client
 	config = paramConfig
 
 	log.Printf("Starting api server on %v.", config.ApiServerAddress)
-	
+
 	if len(config.ApiWhitelist) == 0 {
 		log.Print("Api whitelist is empty, so anyone could use it. Disable api server by setting Use_api_server to false in config.toml if you don't need it.")
 	}
 
 	serv := &ApiServer{
-		Users: users,
-		Addr:  config.ApiServerAddress,
+		Clients: users,
+		Addr:    config.ApiServerAddress,
 	}
 
 	http.HandleFunc("/port2ip", serv.port2ip)
 	http.HandleFunc("/online", serv.online)
+	http.HandleFunc("/port2latency", serv.port2latency)
 
-	go func ()  {
+	go func() {
 		err := http.ListenAndServe(config.ApiServerAddress, nil)
 		if err != nil {
 			log.Panic(err)
 		}
 	}()
-	
+
 	return nil
 }
 
+func (s *ApiServer) port2latency(w http.ResponseWriter, r *http.Request) {
+	if !isAllowed(addrStringToArray(r.RemoteAddr)[0]) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	var resp apiResponse
+	w.Header().Set("Content-Type", "application/json")
+
+	port := r.URL.Query().Get("port")
+	if port == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(apiResponse{
+			Body:  "",
+			Error: "Port is empty",
+		})
+		return
+	}
+
+	s.Clients.Range(func(key net.Conn, value *server.Client) bool {
+		proxyPort := addrStringToArray(value.Addr.LocalAddr().String())[1]
+		serverLatency := key.(*raknet.Conn).Latency()
+		clientLatency := value.GetLatency()
+
+		log.Print(2 * (serverLatency + clientLatency))
+
+		if proxyPort == port {
+			resp = apiResponse{
+				Body: struct {
+					ClientLatency int    `json:"clientLatency"`
+					ServerLatency int    `json:"serverLatency"`
+					TotalLatency  int    `json:"totalLatency"`
+					Port          string `json:"port"`
+				}{
+					ClientLatency: int(value.GetLatency()),
+					ServerLatency: int(key.(*raknet.Conn).Latency()),
+					TotalLatency: int((serverLatency + clientLatency) * 2),
+					Port:          port,
+				},
+				Error: "",
+			}
+			return false
+		}
+		return true
+	})
+
+	if resp == (apiResponse{}) {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(apiResponse{
+			Body:  "",
+			Error: "This port isn't online",
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
+}
+
 func (s *ApiServer) online(w http.ResponseWriter, r *http.Request) {
-	if !isAllowed(addrStringToArray(r.RemoteAddr)[0]){
+	if !isAllowed(addrStringToArray(r.RemoteAddr)[0]) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -62,7 +123,7 @@ func (s *ApiServer) online(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	online := 0
-	s.Users.Range(func(key net.Conn, value *server.Client) bool {
+	s.Clients.Range(func(key net.Conn, value *server.Client) bool {
 		online++
 		return true
 	})
@@ -99,7 +160,7 @@ func (s *ApiServer) port2ip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Users.Range(func(key net.Conn, value *server.Client) bool {
+	s.Clients.Range(func(key net.Conn, value *server.Client) bool {
 		proxyPort := addrStringToArray(value.Addr.LocalAddr().String())[1]
 		originIp := addrStringToArray(value.Addr.RemoteAddr().String())[0]
 
@@ -122,7 +183,7 @@ func (s *ApiServer) port2ip(w http.ResponseWriter, r *http.Request) {
 	if resp == (apiResponse{}) {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(apiResponse{
-			Body:  nil,
+			Body:  "",
 			Error: "This port isn't online",
 		})
 		return
