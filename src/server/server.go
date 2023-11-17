@@ -66,12 +66,12 @@ func (s *Server) handleConnection(conn net.Conn) {
 		log.Print("Error: failed to use net.Conn as raknet.Conn")
 		return
 	}
-	s.Clients.Store(conn, &Client{Addr: raknetConn})
+	s.Clients.Store(server, &Client{Addr: raknetConn})
 
 	defer func() {
 		server.Close()
 		conn.Close()
-		s.Clients.Delete(conn)
+		s.Clients.Delete(server)
 		log.Printf("Client disconnected: %v", conn.RemoteAddr().String())
 	}()
 
@@ -168,7 +168,6 @@ func (s *Server) StartHandle() {
 			arrayMotd[6] = fmt.Sprint(listener.ID())
 			arrayMotd[10] = fmt.Sprint(s.ProxyAddr.Port)
 			arrayMotd[11] = fmt.Sprint(s.ProxyAddr.Port)
-
 			stringMotd := strings.Join(arrayMotd, ";")
 
 			listener.PongData([]byte(stringMotd))
