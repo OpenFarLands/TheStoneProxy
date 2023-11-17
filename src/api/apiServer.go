@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"slices"
 	"strings"
-	"sync"
 
 	conf "github.com/OpenFarLands/TheStoneProxy/src/config"
+	"github.com/OpenFarLands/TheStoneProxy/src/server"
+	"github.com/OpenFarLands/TheStoneProxy/src/utils/syncmap"
 )
 
 type ApiServer struct {
-	Users *sync.Map
+	Users *syncmap.Map[net.Conn, *server.Client]
 	Addr  string
 }
 
@@ -24,11 +25,8 @@ type apiResponse struct {
 
 var config *conf.Config
 
-func Setup(paramConfig *conf.Config, users *sync.Map) error {
+func Setup(paramConfig *conf.Config, users *syncmap.Map[net.Conn, *server.Client]) error {
 	config = paramConfig
-	if !config.UseApiServer {
-		return nil
-	}
 
 	log.Printf("Starting api server on %v.", config.ApiServerAddress)
 	
@@ -64,7 +62,7 @@ func (s *ApiServer) online(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	online := 0
-	s.Users.Range(func(key, value any) bool {
+	s.Users.Range(func(key net.Conn, value *server.Client) bool {
 		online++
 		return true
 	})
@@ -101,9 +99,9 @@ func (s *ApiServer) port2ip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Users.Range(func(key, value any) bool {
-		proxyPort := addrStringToArray(value.(net.Conn).LocalAddr().String())[1]
-		originIp := addrStringToArray(key.(net.Conn).RemoteAddr().String())[0]
+	s.Users.Range(func(key net.Conn, value *server.Client) bool {
+		proxyPort := addrStringToArray(value.Addr.LocalAddr().String())[1]
+		originIp := addrStringToArray(value.Addr.RemoteAddr().String())[0]
 
 		if proxyPort == port {
 			resp = apiResponse{

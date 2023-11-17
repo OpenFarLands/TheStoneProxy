@@ -26,11 +26,12 @@ func main() {
 	}
 	go serv.StartHandle()
 
-	err = api.Setup(conf, &serv.Users)
-	if err != nil {
-		log.Panicf("Failed to setup api server: %v", err)
+	if conf.UseApiServer {
+		err = api.Setup(conf, &serv.Clients)
+		if err != nil {
+			log.Panicf("Failed to setup api server: %v", err)
+		}
 	}
-	
 
 	wg.Add(1)
 	c := make(chan os.Signal, 1)

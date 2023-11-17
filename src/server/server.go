@@ -12,6 +12,7 @@ import (
 	"time"
 
 	conf "github.com/OpenFarLands/TheStoneProxy/src/config"
+	"github.com/OpenFarLands/TheStoneProxy/src/utils/syncmap"
 	"github.com/OpenFarLands/go-raknet"
 )
 
@@ -20,7 +21,7 @@ const defaultTimeout = 8
 var config *conf.Config
 
 type Server struct {
-	Users        sync.Map
+	Clients      syncmap.Map[net.Conn, *Client]
 	ProxyAddr    *net.UDPAddr
 	UpstreamAddr string
 	Timeout      int
@@ -59,12 +60,18 @@ func (s *Server) handleConnection(conn net.Conn) {
 			return
 		}
 	}
-	s.Users.Store(conn, server)
+
+	raknetConn, ok := conn.(*raknet.Conn)
+	if !ok {
+		log.Print("Error: failed to use net.Conn as raknet.Conn")
+		return
+	}
+	s.Clients.Store(conn, &Client{Addr: raknetConn})
 
 	defer func() {
 		server.Close()
 		conn.Close()
-		s.Users.Delete(conn)
+		s.Clients.Delete(conn)
 		log.Printf("Client disconnected: %v", conn.RemoteAddr().String())
 	}()
 
@@ -129,10 +136,10 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) StopHandle() {
-	s.Users.Range(func(key, value any) bool {
+	s.Clients.Range(func(key net.Conn, value *Client) bool {
 		key.(*raknet.Conn).Close()
-		value.(*raknet.Conn).Close()
-		s.Users.Delete(key)
+		value.Close()
+		s.Clients.Delete(key)
 		return true
 	})
 }
@@ -145,7 +152,7 @@ func (s *Server) StartHandle() {
 		log.Panic(err)
 	}
 	defer listener.Close()
-	
+
 	// Get motd from upstream
 	ticker := time.NewTicker(time.Duration(config.MotdGetInterval) * time.Second)
 	go func() {
