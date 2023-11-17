@@ -11,4 +11,4 @@ Use_api_server = true
 # Address of api server
 Api_server_address = ":3030"
 # Array of ip addresses that can use api. Keep it empty to allow any ip address
-Api_whitelist = ["[::1]", "4.4.4.4"]
+Api_whitelist = ["4.4.4.4"]
