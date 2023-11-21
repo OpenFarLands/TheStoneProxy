@@ -68,7 +68,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 	s.Clients.Store(server, &Client{Addr: raknetConn})
 
+	addOnline(1)
 	defer func() {
+		addOnline(-1)
 		server.Close()
 		conn.Close()
 		s.Clients.Delete(server)

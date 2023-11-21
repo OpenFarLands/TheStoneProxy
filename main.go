@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/OpenFarLands/TheStoneProxy/src/api"
+	"github.com/OpenFarLands/TheStoneProxy/src/api/metrics"
 	"github.com/OpenFarLands/TheStoneProxy/src/config"
 	"github.com/OpenFarLands/TheStoneProxy/src/server"
 )
@@ -29,7 +30,14 @@ func main() {
 	if conf.UseApiServer {
 		err = api.Setup(conf, &serv.Clients)
 		if err != nil {
-			log.Panicf("Failed to setup api server: %v", err)
+			log.Panicf("Api server error: %v", err)
+		}
+	}
+
+	if conf.UsePrometheus {
+		err = metrics.Setup(conf)
+		if err != nil {
+			log.Panicf("Prometheus server error: %v", err)
 		}
 	}
 
