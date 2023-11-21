@@ -17,4 +17,4 @@ UsePrometheus = true
 # Address of prometheus server
 PrometheusAddress = ":3031"
 # Token for auth request to metrics server. Keep it to disable auth
-PrometheusAuthToken = "helloworld"
+PrometheusBearerAuthToken = "helloworld"
