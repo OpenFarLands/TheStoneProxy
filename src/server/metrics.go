@@ -6,10 +6,10 @@ import (
 )
 
 var onlineMetric = promauto.NewGauge(prometheus.GaugeOpts{
-	Namespace: "proxy",
+	Namespace: "stone",
 	Subsystem: "proxy",
 	Name: "players",
-
+	Help: "Total number of online players right now.",
 })
 
 func addOnline(online int) {
