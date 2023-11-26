@@ -160,7 +160,7 @@ func (s *Server) StartHandle() {
 		for {
 			motd, err := raknet.PingTimeout(s.UpstreamAddr, time.Second)
 			if err != nil {
-				continue
+				motd = []byte(config.OfflinePongMessage)
 			}
 
 			arrayMotd := strings.Split(string(motd), ";")
