@@ -27,24 +27,26 @@ func main() {
 	}
 	go serv.StartHandle()
 
-	if conf.UseApiServer {
-		err = api.Setup(conf, &serv.Clients)
-		if err != nil {
-			log.Panicf("Api server error: %v", err)
+	go func() {
+		if conf.UseApiServer {
+			err = api.Setup(conf, &serv.Clients)
+			if err != nil {
+				log.Panicf("Api server error: %v", err)
+			}
 		}
-	}
-
-	if conf.UsePrometheus {
-		err = metrics.Setup(conf)
-		if err != nil {
-			log.Panicf("Prometheus server error: %v", err)
+	
+		if conf.UsePrometheus {
+			err = metrics.Setup(conf)
+			if err != nil {
+				log.Panicf("Prometheus server error: %v", err)
+			}
 		}
-	}
+	}()
 
 	wg.Add(1)
 	c := make(chan os.Signal, 1)
     signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-    go func() {
+    func() {
         <-c
 		log.Print("Stopping the server...")
 		serv.StopHandle()

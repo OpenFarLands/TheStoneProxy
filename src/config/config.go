@@ -8,16 +8,17 @@ import (
 )
 
 type Config struct {
-	LocalAddress        string
-	RemoteAddress       string
-	Timeout             int
-	MotdGetInterval     int
-	UseApiServer        bool
-	ApiServerAddress    string
-	ApiWhitelist        []string
-	UsePrometheus       bool
-	PrometheusAddress   string
+	LocalAddress              string
+	RemoteAddress             string
+	Timeout                   int
+	MotdGetInterval           int
+	UseApiServer              bool
+	ApiServerAddress          string
+	ApiWhitelist              []string
+	UsePrometheus             bool
+	PrometheusAddress         string
 	PrometheusBearerAuthToken string
+	OfflinePongMessage        string
 }
 
 func New(filename string) (*Config, error) {

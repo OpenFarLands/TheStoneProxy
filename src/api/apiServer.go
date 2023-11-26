@@ -158,8 +158,8 @@ func (s *ApiServer) port2ip(w http.ResponseWriter, r *http.Request) {
 
 	s.Clients.Range(func(key net.Conn, value *server.Client) bool {
 		proxyPort := addrStringToArray(key.LocalAddr().String())[1]
-		originIp := addrStringToArray(key.RemoteAddr().String())[0]
-
+		originIp := addrStringToArray(value.Addr.RemoteAddr().String())[0]
+		
 		if proxyPort == port {
 			resp = apiResponse{
 				Body: struct {

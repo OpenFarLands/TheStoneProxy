@@ -49,12 +49,11 @@ func New(proxyAddr, upstreamAddr string, paramConfig *conf.Config) (*Server, err
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	log.Printf("Сlient connected: %v", conn.RemoteAddr().String())
-
-	server, err := raknet.Dial(s.UpstreamAddr)
+	server, err := raknet.DialTimeout(s.UpstreamAddr, 5 * time.Second)
 	if err != nil {
-		server, err = raknet.Dial(s.UpstreamAddr)
+		server, err = raknet.DialTimeout(s.UpstreamAddr, 5 * time.Second)
 		if err != nil {
+			conn.Write([]byte{0x15})
 			conn.Close()
 			log.Printf("Error connecting to the server: %v\n", err)
 			return
@@ -68,10 +67,12 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 	s.Clients.Store(server, &Client{Addr: raknetConn})
 
+	log.Printf("Сlient connected: %v", conn.RemoteAddr().String())
 	addOnline(1)
 	defer func() {
 		addOnline(-1)
 		server.Close()
+		conn.Write([]byte{0x15})
 		conn.Close()
 		s.Clients.Delete(server)
 		log.Printf("Client disconnected: %v", conn.RemoteAddr().String())
@@ -139,8 +140,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 func (s *Server) StopHandle() {
 	s.Clients.Range(func(key net.Conn, value *Client) bool {
-		key.(*raknet.Conn).Close()
-		value.Close()
+		value.Addr.Close()
+		key.Close()
 		s.Clients.Delete(key)
 		return true
 	})
@@ -156,14 +157,11 @@ func (s *Server) StartHandle() {
 	defer listener.Close()
 
 	// Get motd from upstream
-	ticker := time.NewTicker(time.Duration(config.MotdGetInterval) * time.Second)
 	go func() {
 		for {
-			<-ticker.C
-
 			motd, err := raknet.PingTimeout(s.UpstreamAddr, time.Second)
 			if err != nil {
-				continue
+				motd = []byte(config.OfflinePongMessage)
 			}
 
 			arrayMotd := strings.Split(string(motd), ";")
@@ -173,6 +171,8 @@ func (s *Server) StartHandle() {
 			stringMotd := strings.Join(arrayMotd, ";")
 
 			listener.PongData([]byte(stringMotd))
+
+			time.Sleep(time.Duration(config.MotdGetInterval) * time.Second) 
 		}
 	}()
 
