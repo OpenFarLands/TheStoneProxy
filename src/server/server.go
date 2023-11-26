@@ -156,11 +156,8 @@ func (s *Server) StartHandle() {
 	defer listener.Close()
 
 	// Get motd from upstream
-	ticker := time.NewTicker(time.Duration(config.MotdGetInterval) * time.Second)
 	go func() {
 		for {
-			<-ticker.C
-
 			motd, err := raknet.PingTimeout(s.UpstreamAddr, time.Second)
 			if err != nil {
 				continue
@@ -173,6 +170,8 @@ func (s *Server) StartHandle() {
 			stringMotd := strings.Join(arrayMotd, ";")
 
 			listener.PongData([]byte(stringMotd))
+
+			time.Sleep(time.Duration(config.MotdGetInterval) * time.Second) 
 		}
 	}()
 
