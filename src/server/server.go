@@ -49,12 +49,11 @@ func New(proxyAddr, upstreamAddr string, paramConfig *conf.Config) (*Server, err
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	log.Printf("Сlient connected: %v", conn.RemoteAddr().String())
-
-	server, err := raknet.Dial(s.UpstreamAddr)
+	server, err := raknet.DialTimeout(s.UpstreamAddr, 5 * time.Second)
 	if err != nil {
-		server, err = raknet.Dial(s.UpstreamAddr)
+		server, err = raknet.DialTimeout(s.UpstreamAddr, 5 * time.Second)
 		if err != nil {
+			conn.Write([]byte{0x15})
 			conn.Close()
 			log.Printf("Error connecting to the server: %v\n", err)
 			return
@@ -68,10 +67,12 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 	s.Clients.Store(server, &Client{Addr: raknetConn})
 
+	log.Printf("Сlient connected: %v", conn.RemoteAddr().String())
 	addOnline(1)
 	defer func() {
 		addOnline(-1)
 		server.Close()
+		conn.Write([]byte{0x15})
 		conn.Close()
 		s.Clients.Delete(server)
 		log.Printf("Client disconnected: %v", conn.RemoteAddr().String())
