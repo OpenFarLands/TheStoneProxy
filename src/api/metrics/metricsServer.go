@@ -15,7 +15,7 @@ var config *conf.Config
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get("Authorization")
-		authToken := config.PrometheusBearerAuthToken
+		authToken := config.Metrics.PrometheusBearerAuthToken
 
 		// A ⋀ (B ⋁ С)  <=>  (A ⋀ B) ⋁ (A ⋀ C) xDDD
 		if authToken != "" && (header == "" || header != fmt.Sprintf("Bearer %v", authToken)) {
@@ -29,10 +29,10 @@ func authMiddleware(next http.Handler) http.Handler {
 func Setup(paramConfig *conf.Config) error {
 	config = paramConfig
 
-	log.Printf("Starting prometheus server on %v.", config.PrometheusAddress)
+	log.Printf("Starting prometheus server on %v.", config.Metrics.PrometheusAddress)
 
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", authMiddleware(promhttp.Handler()))
 
-	return http.ListenAndServe(paramConfig.PrometheusAddress, mux)
+	return http.ListenAndServe(paramConfig.Metrics.PrometheusAddress, mux)
 }

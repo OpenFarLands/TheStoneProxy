@@ -29,15 +29,15 @@ var config *conf.Config
 func Setup(paramConfig *conf.Config, users *syncmap.Map[net.Conn, *server.Client]) error {
 	config = paramConfig
 
-	log.Printf("Starting api server on %v.", config.ApiServerAddress)
+	log.Printf("Starting api server on %v.", config.Api.ApiServerAddress)
 
-	if len(config.ApiWhitelist) == 0 {
+	if len(config.Api.ApiWhitelist) == 0 {
 		log.Print("Api whitelist is empty, so anyone could use it. Disable api server by setting Use_api_server to false in config.toml if you don't need it.")
 	}
 
 	serv := &ApiServer{
 		Clients: users,
-		Addr:    config.ApiServerAddress,
+		Addr:    config.Api.ApiServerAddress,
 	}
 
 	http.HandleFunc("/port2ip", serv.port2ip)
@@ -45,7 +45,7 @@ func Setup(paramConfig *conf.Config, users *syncmap.Map[net.Conn, *server.Client
 	http.HandleFunc("/port2latency", serv.port2latency)
 
 	go func() {
-		err := http.ListenAndServe(config.ApiServerAddress, nil)
+		err := http.ListenAndServe(config.Api.ApiServerAddress, nil)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -190,7 +190,7 @@ func (s *ApiServer) port2ip(w http.ResponseWriter, r *http.Request) {
 }
 
 func isAllowed(address string) bool {
-	return slices.Contains(config.ApiWhitelist, address) || len(config.ApiWhitelist) == 0
+	return slices.Contains(config.Api.ApiWhitelist, address) || len(config.Api.ApiWhitelist) == 0
 }
 
 func addrStringToArray(str string) []string {

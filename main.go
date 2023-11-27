@@ -21,21 +21,21 @@ func main() {
 		log.Panic(err)
 	}
 
-	serv, err := server.New(conf.LocalAddress, conf.RemoteAddress, conf)
+	serv, err := server.New(conf.Network.LocalAddress, conf.Network.RemoteAddress, conf)
 	if err != nil {
 		log.Panic(err)
 	}
 	go serv.StartHandle()
 
 	go func() {
-		if conf.UseApiServer {
+		if conf.Api.UseApiServer {
 			err = api.Setup(conf, &serv.Clients)
 			if err != nil {
 				log.Panicf("Api server error: %v", err)
 			}
 		}
 	
-		if conf.UsePrometheus {
+		if conf.Metrics.UsePrometheus {
 			err = metrics.Setup(conf)
 			if err != nil {
 				log.Panicf("Prometheus server error: %v", err)

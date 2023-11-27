@@ -31,7 +31,7 @@ type Server struct {
 func New(proxyAddr, upstreamAddr string, paramConfig *conf.Config) (*Server, error) {
 	config = paramConfig
 
-	timeout := config.Timeout
+	timeout := config.Network.Timeout
 	if timeout <= 0 {
 		timeout = defaultTimeout
 	}
@@ -161,7 +161,7 @@ func (s *Server) StartHandle() {
 		for {
 			motd, err := raknet.PingTimeout(s.UpstreamAddr, time.Second)
 			if err != nil {
-				motd = []byte(config.OfflinePongMessage)
+				motd = []byte(config.Network.OfflinePongMessage)
 			}
 
 			arrayMotd := strings.Split(string(motd), ";")
@@ -172,7 +172,7 @@ func (s *Server) StartHandle() {
 
 			listener.PongData([]byte(stringMotd))
 
-			time.Sleep(time.Duration(config.MotdGetInterval) * time.Second) 
+			time.Sleep(time.Duration(config.Network.MotdGetInterval) * time.Second) 
 		}
 	}()
 
