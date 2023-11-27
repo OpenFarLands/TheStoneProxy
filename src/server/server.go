@@ -140,6 +140,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 func (s *Server) StopHandle() {
 	s.Clients.Range(func(key net.Conn, value *Client) bool {
+		value.Addr.Write([]byte{0x15})
 		value.Addr.Close()
 		key.Close()
 		s.Clients.Delete(key)
