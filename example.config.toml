@@ -1,23 +1,28 @@
+[Network]
 # Address of proxy for clients to connect
-LocalAddress = "0.0.0.0:228"
+LocalAddress = "0.0.0.0:19132"
 # Address of origin server for proxy to relay
 RemoteAddress = "localhost:19133"
 # Time in seconds of inactivity before connection will be closed
 Timeout = 60
 # Time in second of waiting before sending ping packet (and get motd) to origin server
 MotdGetInterval = 10
+# Unconnected pong message that will return if proxy failed to fetch that from origin server
+# SERVER_UNIQUE_ID, PORT_V_4, PORT_V_6 WILL BE REPLACED TO CORRECT ONES
+OfflinePongMessage = "MCPE;§c§lOffline !(;618;1.20.31;0;10;SERVER_UNIQUE_ID;Bedrock level?;Survival;1;PORT_V_4;PORT_V_6;1;"
+
+[Api]
 # Whether use api server
 UseApiServer = true
 # Address of api server
 ApiServerAddress = ":3030"
 # Array of ip addresses that can use api. Keep it empty to allow any ip address
-ApiWhitelist = ["4.4.4.4"]
+ApiWhitelist = ["[::1]"]
+
+[Metrics]
 # Whether use prometheus server
 UsePrometheus = true
 # Address of prometheus server
 PrometheusAddress = ":3031"
-# Token for auth request to metrics server. Keep it to disable auth
+# Token for auth request to metrics server. Keep it empty to disable auth
 PrometheusBearerAuthToken = "helloworld"
-# Unconnected pong message that will return if proxy failed to fetch that from origin server
-# SERVER_UNIQUE_ID, PORT_V_4, PORT_V_6 WILL BE REPLACED TO CORRECT ONES
-OfflinePongMessage = "MCPE;§c§lOffline !(;618;1.20.31;0;10;SERVER_UNIQUE_ID;Bedrock level?;Survival;1;PORT_V_4;PORT_V_6;1;"
