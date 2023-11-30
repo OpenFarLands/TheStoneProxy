@@ -7,7 +7,7 @@ Lightweight go-written L4 proxy for minecraft bedrock editon (mcpe/mcbe).
 - Prometheus server to collect metrics.
 - Flexible configuration.
 - Using the Raknet protocol, so it doesn't need to be updated every time new mcpe version released.
-- Ready to rock Dockerfile
+- Ready to rock Dockerfile.
 
 ## Getting started
 
