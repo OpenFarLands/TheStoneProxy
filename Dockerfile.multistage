@@ -1,0 +1,23 @@
+FROM golang:1.21 AS build-stage
+
+WORKDIR /app
+
+# Download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source files
+COPY main.go ./
+COPY src/ ./src
+
+# Build app
+RUN CGO_ENABLED=0 GOOS=linux go build -o /TheStoneProxy
+
+
+FROM alpine AS build-release-stage
+
+WORKDIR /app
+
+COPY --from=build-stage /TheStoneProxy /TheStoneProxy
+
+ENTRYPOINT ["/TheStoneProxy"]
