@@ -1,9 +1,8 @@
 name: Publish Docker image
 
 on:
-    push:
-        branches:
-            - "main"
+    release:
+        types: [published]
 
 jobs:
     build:
@@ -24,4 +23,4 @@ jobs:
                   context: .
                   file: ./Dockerfile.multistage
                   push: true
-                  tags: ${{ secrets.DOCKER_USERNAME }}/stone-proxy:latest
+                  tags: ${{ secrets.DOCKER_USERNAME }}/stone-proxy:latest,  ${{ secrets.DOCKER_USERNAME }}/stone-proxy:${{ env.RELEASE_VERSION }},
