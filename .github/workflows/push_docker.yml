@@ -24,4 +24,4 @@ jobs:
                   context: .
                   file: ./Dockerfile.multistage
                   push: true
-                  tags: ${{ secrets.DOCKER_USERNAME }}/stone-proxy:latest , ${{ secrets.DOCKER_USERNAME }}/stone-proxy:${{ env.RELEASE_VERSION }},
+                  tags: ${{ secrets.DOCKER_USERNAME }}/stone-proxy:latest
