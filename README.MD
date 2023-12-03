@@ -11,7 +11,7 @@ Lightweight go-written L4 proxy for minecraft bedrock editon (mcpe/mcbe).
 
 ## Getting started
 
-### Build by your own
+### Build on your own
 
 *You must have go installed on your PC*
 
