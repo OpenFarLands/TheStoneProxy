@@ -7,13 +7,13 @@ Lightweight go-written L4 proxy for minecraft bedrock editon (mcpe/mcbe).
 - Prometheus server to collect metrics.
 - Flexible configuration.
 - Using the Raknet protocol, so it doesn't need to be updated every time new mcpe version released.
-- Ready to rock Dockerfile.
+- Ready to rock Docker.
 
 ## Getting started
 
 ### Build on your own
 
-*You must have go installed on your PC*
+*You must have **go** installed on your PC*
 
 Clone git repo and get into project dir
 ```bash
@@ -32,7 +32,55 @@ Run proxy
 
 ### Use Docker
 
-*Comming soon...*
+*You must have **docker** installed on your PC*
+
+Download default config 
+```bash
+wget https://raw.githubusercontent.com/OpenFarLands/TheStoneProxy/main/example.config.toml
+
+```
+
+Start the container
+```bash
+docker run -v ${PWD}/example.config.toml:/app/config.toml --network host --restart unless-stopped mikhaillav/stone-proxy:latest
+
+```
+
+*Recommending to use **host** network type*
+
+### Use Docker-Compose
+
+*You must have **docker** & **docker-compose** installed on your PC*
+
+Example of *docker-compose.yml* for 2 proxy-servers
+```yaml
+version: '3.7'
+
+services:
+    proxy1:
+        image: mikhaillav/stone-proxy:latest
+        volumes:
+            - ${PWD}/first.config.toml:/app/config.toml
+        restart: unless-stopped
+        network_mode: host
+
+
+    proxy2:
+        image: mikhaillav/stone-proxy:latest
+        volumes:
+            - ${PWD}/second.config.toml:/app/config.toml
+        restart: unless-stopped
+        network_mode: host
+
+```
+
+*Recommending to use **host** network type*
+
+
+After creating docker-compose.yml and config files start your proxy
+```bash
+docker-compose up -d
+```
 
 ## Configuration
 
