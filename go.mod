@@ -3,7 +3,7 @@ module github.com/OpenFarLands/TheStoneProxy
 go 1.21.0
 
 require (
-	github.com/OpenFarLands/go-raknet v1.12.9
+	github.com/OpenFarLands/go-raknet v1.12.10
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/prometheus/client_golang v1.17.0
 )

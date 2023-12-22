@@ -1,5 +1,5 @@
-github.com/OpenFarLands/go-raknet v1.12.9 h1:DECYYF9HrSkcz6IlEnpnaxhfb7dthpBHYt6h2Z1dMqc=
-github.com/OpenFarLands/go-raknet v1.12.9/go.mod h1:iHoHECd5WJuPZenpM7hO2xy6x8zZijB97D0gO4RvKn8=
+github.com/OpenFarLands/go-raknet v1.12.10 h1:8J3hcGcFY09QonS91bj3wvNuIxOSXXvnCsjqzmH4zWc=
+github.com/OpenFarLands/go-raknet v1.12.10/go.mod h1:iHoHECd5WJuPZenpM7hO2xy6x8zZijB97D0gO4RvKn8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.2.0 h1:DC2CZ1Ep5Y4k3ZQ899DldepgrayRUGE6BBZ/cd9Cj44=
