@@ -49,9 +49,9 @@ func New(proxyAddr, upstreamAddr string, paramConfig *conf.Config) (*Server, err
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	server, err := raknet.DialTimeout(s.UpstreamAddr, 5 * time.Second)
+	server, err := raknet.DialTimeout(s.UpstreamAddr, 5*time.Second)
 	if err != nil {
-		server, err = raknet.DialTimeout(s.UpstreamAddr, 5 * time.Second)
+		server, err = raknet.DialTimeout(s.UpstreamAddr, 5*time.Second)
 		if err != nil {
 			conn.Write([]byte{0x15})
 			conn.Close()
@@ -160,20 +160,29 @@ func (s *Server) StartHandle() {
 	// Get motd from upstream
 	go func() {
 		for {
+			usingOfflineMotd := false
 			motd, err := raknet.PingTimeout(s.UpstreamAddr, time.Second)
 			if err != nil {
 				motd = []byte(config.Network.OfflinePongMessage)
+				usingOfflineMotd = true
 			}
 
 			arrayMotd := strings.Split(string(motd), ";")
-			arrayMotd[6] = fmt.Sprint(listener.ID())
-			arrayMotd[10] = fmt.Sprint(s.ProxyAddr.Port)
-			arrayMotd[11] = fmt.Sprint(s.ProxyAddr.Port)
+			if !usingOfflineMotd || (usingOfflineMotd && arrayMotd[6] == "SERVER_UNIQUE_ID") {
+				arrayMotd[6] = fmt.Sprint(listener.ID())
+			}
+			if !usingOfflineMotd || (usingOfflineMotd && arrayMotd[10] == "PORT_V_4") {
+				arrayMotd[10] = fmt.Sprint(s.ProxyAddr.Port)
+			}
+			if !usingOfflineMotd || (usingOfflineMotd && arrayMotd[11] == "PORT_V_6") {
+				arrayMotd[11] = fmt.Sprint(s.ProxyAddr.Port)
+			}
+
 			stringMotd := strings.Join(arrayMotd, ";")
 
 			listener.PongData([]byte(stringMotd))
 
-			time.Sleep(time.Duration(config.Network.MotdGetInterval) * time.Second) 
+			time.Sleep(time.Duration(config.Network.MotdGetInterval) * time.Second)
 		}
 	}()
 
