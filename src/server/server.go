@@ -168,13 +168,13 @@ func (s *Server) StartHandle() {
 			}
 
 			arrayMotd := strings.Split(string(motd), ";")
-			if !usingOfflineMotd || (usingOfflineMotd && arrayMotd[6] == "SERVER_UNIQUE_ID") {
+			if (!usingOfflineMotd || arrayMotd[6] == "SERVER_UNIQUE_ID") && len(arrayMotd) >= 6 {
 				arrayMotd[6] = fmt.Sprint(listener.ID())
 			}
-			if !usingOfflineMotd || (usingOfflineMotd && arrayMotd[10] == "PORT_V_4") {
+			if (!usingOfflineMotd || arrayMotd[10] == "PORT_V_4") && len(arrayMotd) >= 10 {
 				arrayMotd[10] = fmt.Sprint(s.ProxyAddr.Port)
 			}
-			if !usingOfflineMotd || (usingOfflineMotd && arrayMotd[11] == "PORT_V_6") {
+			if (!usingOfflineMotd || arrayMotd[11] == "PORT_V_6") && len(arrayMotd) >= 11{
 				arrayMotd[11] = fmt.Sprint(s.ProxyAddr.Port)
 			}
 
