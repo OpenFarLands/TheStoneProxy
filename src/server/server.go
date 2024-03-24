@@ -2,13 +2,12 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"sync"
 
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
 	conf "github.com/OpenFarLands/TheStoneProxy/src/config"
@@ -51,6 +50,7 @@ func New(proxyAddr, upstreamAddr string, paramConfig *conf.Config) (*Server, err
 func (s *Server) handleConnection(conn net.Conn) {
 	server, err := raknet.DialTimeout(s.UpstreamAddr, 5*time.Second)
 	if err != nil {
+		// Try again, because connection sometimes is unstable
 		server, err = raknet.DialTimeout(s.UpstreamAddr, 5*time.Second)
 		if err != nil {
 			conn.Write([]byte{0x15})
@@ -83,11 +83,10 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	// Read from client, proxy to server
 	go func() {
-		b := make([]byte, 1024*1024*4)
 		for {
-			conn.SetDeadline(time.Now().Add(time.Duration(s.Timeout) * time.Second))
+			raknetConn.SetDeadline(time.Now().Add(time.Duration(s.Timeout) * time.Second))
 
-			n, err := conn.Read(b)
+			packet, err := raknetConn.ReadPacket()
 			if err != nil {
 				if !raknet.ErrConnectionClosed(err) && !errors.Is(err, context.DeadlineExceeded) {
 					log.Printf("Error reading from client connection: %v\n", err)
@@ -95,8 +94,6 @@ func (s *Server) handleConnection(conn net.Conn) {
 				wg.Done()
 				return
 			}
-
-			packet := b[:n]
 
 			_, err = server.Write(packet)
 			if err != nil {
@@ -111,10 +108,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	// Read from server, relay to client
 	go func() {
-		b := make([]byte, 1024*1024*4)
 		for {
 			server.SetDeadline(time.Now().Add(time.Duration(s.Timeout) * time.Second))
-			n, err := server.Read(b)
+			packet, err := server.ReadPacket()
 			if err != nil {
 				if !raknet.ErrConnectionClosed(err) && !errors.Is(err, context.DeadlineExceeded) {
 					log.Printf("Error reading from server connection: %v\n", err)
@@ -122,8 +118,6 @@ func (s *Server) handleConnection(conn net.Conn) {
 				wg.Done()
 				return
 			}
-
-			packet := b[:n]
 
 			_, err = conn.Write(packet)
 			if err != nil {
@@ -142,6 +136,7 @@ func (s *Server) StopHandle() {
 	s.Clients.Range(func(key net.Conn, value *Client) bool {
 		value.Addr.Write([]byte{0x15})
 		value.Addr.Close()
+		key.Write([]byte{0x15})
 		key.Close()
 		s.Clients.Delete(key)
 		return true
@@ -160,27 +155,24 @@ func (s *Server) StartHandle() {
 	// Get motd from upstream
 	go func() {
 		for {
-			usingOfflineMotd := false
-			motd, err := raknet.PingTimeout(s.UpstreamAddr, time.Second)
+			var motd *Motd
+
+			byteMotd, err := raknet.PingTimeout(s.UpstreamAddr, time.Second)
 			if err != nil {
-				motd = []byte(config.Network.OfflinePongMessage)
-				usingOfflineMotd = true
+				motd = NewMotd()
+				motd.motd = config.OfflineMotd.Motd
+				motd.protocolVersion = config.OfflineMotd.ProtocolVersion
+				motd.versionName = config.OfflineMotd.VersionName
+				motd.levelName = config.OfflineMotd.LevelName
+			} else {
+				motd = NewMotdFromString(string(byteMotd))
 			}
 
-			arrayMotd := strings.Split(string(motd), ";")
-			if (!usingOfflineMotd || arrayMotd[6] == "SERVER_UNIQUE_ID") && len(arrayMotd) >= 6 {
-				arrayMotd[6] = fmt.Sprint(listener.ID())
-			}
-			if (!usingOfflineMotd || arrayMotd[10] == "PORT_V_4") && len(arrayMotd) >= 10 {
-				arrayMotd[10] = fmt.Sprint(s.ProxyAddr.Port)
-			}
-			if (!usingOfflineMotd || arrayMotd[11] == "PORT_V_6") && len(arrayMotd) >= 11{
-				arrayMotd[11] = fmt.Sprint(s.ProxyAddr.Port)
-			}
+			motd.serverUniqueId = fmt.Sprint(listener.ID())
+			motd.port4 = s.ProxyAddr.Port
+			motd.port6 = s.ProxyAddr.Port
 
-			stringMotd := strings.Join(arrayMotd, ";")
-
-			listener.PongData([]byte(stringMotd))
+			listener.PongData([]byte(motd.String()))
 
 			time.Sleep(time.Duration(config.Network.MotdGetInterval) * time.Second)
 		}
