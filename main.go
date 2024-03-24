@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"github.com/OpenFarLands/TheStoneProxy/src/api"
@@ -12,8 +11,6 @@ import (
 	"github.com/OpenFarLands/TheStoneProxy/src/config"
 	"github.com/OpenFarLands/TheStoneProxy/src/server"
 )
-
-var wg sync.WaitGroup
 
 func main() {
 	conf, err := config.New("./config.toml")
@@ -43,15 +40,12 @@ func main() {
 		}
 	}()
 
-	wg.Add(1)
 	c := make(chan os.Signal, 1)
     signal.Notify(c, os.Interrupt, syscall.SIGTERM)
     func() {
         <-c
 		log.Print("Stopping the server...")
 		serv.StopHandle()
-		wg.Done()
         os.Exit(1)
     }()
-	wg.Wait()
 }
