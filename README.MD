@@ -1,4 +1,5 @@
 # TheStoneProxy
+
 Lightweight go-written L4 proxy for minecraft bedrock editon (mcpe/mcbe).
 
 ## Features
@@ -16,16 +17,19 @@ Lightweight go-written L4 proxy for minecraft bedrock editon (mcpe/mcbe).
 *You must have **go** installed on your PC*
 
 Clone git repo and get into project dir
+
 ```bash
 git clone https://github.com/OpenFarLands/TheStoneProxy && cd TheStoneProxy
 ```
 
 And build it
+
 ```bash
 go build .
 ```
 
 Run proxy
+
 ```bash
 ./TheStoneProxy
 ```
@@ -34,13 +38,15 @@ Run proxy
 
 *You must have **docker** installed on your PC*
 
-Download default config 
+Download default config
+
 ```bash
 wget https://raw.githubusercontent.com/OpenFarLands/TheStoneProxy/main/example.config.toml
 
 ```
 
 Start the container
+
 ```bash
 docker run -v ${PWD}/example.config.toml:/app/config.toml --network host --restart unless-stopped mikhaillav/stone-proxy:latest
 
@@ -53,6 +59,7 @@ docker run -v ${PWD}/example.config.toml:/app/config.toml --network host --resta
 *You must have **docker** & **docker-compose** installed on your PC*
 
 Example of *docker-compose.yml* for 2 proxy-servers
+
 ```yaml
 version: '3.7'
 
@@ -76,11 +83,42 @@ services:
 
 *Recommending to use **host** network type*
 
-
 After creating docker-compose.yml and config files start your proxy
+
 ```bash
 docker-compose up -d
 ```
+
+## Enable modules
+
+TheStoneProxy provides its own api and the prometheus metrics server. Not really lightweight , huh?
+
+There is 4 variants of the program:
+
+- metrics and api (`metrics,api` build tag)
+- only metrics (`metrics` build tag)
+- only api (`api` bulid tag)
+- just proxy (no build tags)
+
+### Building locally
+
+If you build proxy locally you should provide build tags to enable modules.
+
+```bash
+go build -tags metrics,api . // will build full version of the program
+
+go build . // lightweight program with just a proxy server
+```
+
+### Using docker
+
+Logic in docker versions a bit different: the default tag (latest tag or v3.0.0 tag) will include full version of program, however you can specify modules you need:
+
+- `-light` just proxy
+- `-api` proxy with api server
+- `-metrics` proxy with prometheus metrics server
+
+For example version tag `v3.0.0-api` will include v3.0.0 proxy with api server enabled. Pay attention, that tag `v3.0.0` will include **both api and metrics** server this is the differnce between _build tags_ and _docker versions_
 
 ## Configuration
 
