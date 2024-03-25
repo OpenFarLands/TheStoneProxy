@@ -25,16 +25,16 @@ jobs:
               uses: docker/setup-buildx-action@v2
             - name: Tag default image
               if: matrix.module == 'api,metrics' 
-              run: echo "IMAGE_TAG_SUFFIX=''" >> "$GITHUB_ENV"
+              run: echo "IMAGE_TAG_SUFFIX=" >> "$GITHUB_ENV"
             - name: Tag api image
               if: matrix.module == 'api'
-              run: echo "IMAGE_TAG_SUFFIX='-api'" >> "$GITHUB_ENV" 
+              run: echo "IMAGE_TAG_SUFFIX=-api" >> "$GITHUB_ENV" 
             - name: Tag metrics image
               if: matrix.module == 'metrics'
-              run: echo "IMAGE_TAG_SUFFIX='-metrics'" >> "$GITHUB_ENV" 
+              run: echo "IMAGE_TAG_SUFFIX=-metrics" >> "$GITHUB_ENV" 
             - name: Tag light image
               if: matrix.module == 'none'
-              run: echo "IMAGE_TAG_SUFFIX='-light'" >> "$GITHUB_ENV"  
+              run: echo "IMAGE_TAG_SUFFIX=-light" >> "$GITHUB_ENV"  
             - name: Build and push
               uses: docker/build-push-action@v4
               with:
