@@ -12,6 +12,7 @@ import (
 
 	conf "github.com/OpenFarLands/TheStoneProxy/src/config"
 	"github.com/OpenFarLands/TheStoneProxy/src/utils/syncmap"
+	"github.com/OpenFarLands/TheStoneProxy/src/server/metrics"
 	"github.com/OpenFarLands/go-raknet"
 )
 
@@ -68,10 +69,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 	s.Clients.Store(server, &Client{Addr: raknetConn})
 
 	log.Printf("Сlient connected: %v", conn.RemoteAddr().String())
-	addOnline(1)
+	metrics.AddOnline(1)
 	defer func() {
-		addOnline(-1)
+		metrics.AddOnline(-1)
 		server.Close()
+		server.Write([]byte{0x15})
 		conn.Write([]byte{0x15})
 		conn.Close()
 		s.Clients.Delete(server)

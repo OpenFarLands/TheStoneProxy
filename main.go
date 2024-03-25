@@ -41,11 +41,11 @@ func main() {
 	}()
 
 	c := make(chan os.Signal, 1)
-    signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-    func() {
-        <-c
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	func() {
+		<-c
 		log.Print("Stopping the server...")
 		serv.StopHandle()
-        os.Exit(1)
-    }()
+		os.Exit(1)
+	}()
 }

@@ -1,4 +1,6 @@
-package server
+//go:build metrics
+
+package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
@@ -12,6 +14,6 @@ var onlineMetric = promauto.NewGauge(prometheus.GaugeOpts{
 	Help: "Total number of online players right now.",
 })
 
-func addOnline(online int) {
+func AddOnline(online int) {
 	onlineMetric.Add(float64(online))
 }
