@@ -9,7 +9,7 @@ jobs:
     build:
         strategy:
           matrix:
-            module: ["", "api", "metrics", "api,metrics"]
+            module: ["none", "api", "metrics", "api,metrics"]
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -33,7 +33,7 @@ jobs:
               if: matrix.module == 'metrics'
               run: echo "IMAGE_TAG_SUFFIX=-metrics" >> "$GITHUB_OUTPUT" 
             - name: Tag light image
-              if: matrix.module == ''
+              if: matrix.module == 'none'
               run: echo "IMAGE_TAG_SUFFIX=-light" >> "$GITHUB_OUTPUT"  
             - name: Build and push
               uses: docker/build-push-action@v4
