@@ -24,17 +24,17 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v2
             - name: Tag default image
-              if: matrix.module == "api,metrics" 
+              if: matrix.module == 'api,metrics' 
               run: echo "IMAGE_TAG_SUFFIX=" >> "$GITHUB_OUTPUT"
             - name: Tag api image
-              if: matrix.module == "api"
+              if: matrix.module == 'api'
               run: echo "IMAGE_TAG_SUFFIX=-api" >> "$GITHUB_OUTPUT" 
             - name: Tag metrics image
-              if: matrix.module == "metrics"
+              if: matrix.module == 'metrics'
               run: echo "IMAGE_TAG_SUFFIX=-metrics" >> "$GITHUB_OUTPUT" 
             - name: Tag light image
-              if: matrix.module == ""
-              run: echo "IMAGE_TAG_SUFFIX=light" >> "$GITHUB_OUTPUT"  
+              if: matrix.module == ''
+              run: echo "IMAGE_TAG_SUFFIX=-light" >> "$GITHUB_OUTPUT"  
             - name: Build and push
               uses: docker/build-push-action@v4
               with:
