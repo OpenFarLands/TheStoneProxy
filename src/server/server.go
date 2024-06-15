@@ -68,7 +68,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 	s.Clients.Store(server, &Client{Addr: raknetConn})
 
-	log.Printf("Сlient connected: %v", conn.RemoteAddr().String())
+	log.Printf("Client connected: %v", conn.RemoteAddr().String())
 	metrics.AddOnline(1)
 	defer func() {
 		metrics.AddOnline(-1)
